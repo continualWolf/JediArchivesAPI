@@ -17,6 +17,8 @@ The API is structured using the **CQRS pattern** to clearly separate:
 - 🟡 **Commands** — Operations that modify the state of the galaxy (e.g. `CreateUserCommand`)
 - 🔵 **Queries** — Force-sensitive lookups and read-only access (e.g. `GetUserByIdQuery`)
 
+(A separate Database using reflection is available but must be handled by the user at this time, just ensure to update the `JediArchives_Write` & `JediArchives_Read` Connection Strings)
+
 Advantages:
 - Clean logic and separation of concerns
 - Ready for read/write replication, event sourcing, and caching
@@ -75,6 +77,7 @@ Disadvantages:
 - 🗺️ Interactive Galactic Map built with HTML Canvas
 - 🛡️ Audit Logs & Change Tracking for system accountability
 - 🧮 Admin Dashboard
+- 🚀 Dockerize the project
 
 ---
 
