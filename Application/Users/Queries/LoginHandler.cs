@@ -10,18 +10,20 @@ public class LoginHandler(DataContextRead context, IPasswordService passwordServ
     private readonly IJwtService _jwtService = jwtService;
 
     public async Task<LoginResponse?> Handle(LoginQuery request, CancellationToken cancellationToken) {
-        ArgumentNullException.ThrowIfNullOrEmpty(request.Password, nameof(request.Password));
+        if (string.IsNullOrEmpty(request.Password)) {
+            throw new UnauthorizedAccessException();
+        }
 
         var user = await _context.Users.FindAsync(request.Id);
 
         if (user is null) {
-            return null;
+            throw new UnauthorizedAccessException();
         }
 
         bool valid = _passwordService.VerifyPassword(user.HashedPassword, request.Password);
 
         if (!valid) {
-            return null;
+            throw new UnauthorizedAccessException();
         }
 
         var token = _jwtService.GenerateToken(user.Id, user.Name, user.Rank);
