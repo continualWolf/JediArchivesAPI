@@ -29,6 +29,25 @@ public class PlanetsController(IJwtService jwtService, IMediator mediator) : Api
     }
 
     /// <summary>
+    /// Retrieves a list of all planets in the Jedi Archives, with support for filtering, sorting, and pagination via query parameters.
+    /// </summary>
+    /// <param name="query">The query parameters used to filter, sort, or in the future paginate the results.</param>
+    /// <returns>
+    /// Returns 200 OK with the list of planets that match the criteria,
+    /// 401 Unauthorized if the user is not authenticated,
+    /// or 404 Not Found if no planets match the query.
+    /// </returns>
+
+    [HttpGet]
+    [JediAuthorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetAll([FromQuery]GetAllPlanetsQuery query) {
+        return await Execute(() => _mediator.Send(query));
+    }
+
+    /// <summary>
     /// Creates a new planet in the Jedi Archives galaxy.
     /// </summary>
     /// <param name="command">The data used to create the planet.</param>
