@@ -3,7 +3,7 @@ using MediatR;
 
 namespace JediArchives.Application.Planets.Commands;
 
-public class UpdatePlanetCommand: IRequest<bool> {
+public class UpdatePlanetCommand : IRequest<bool> {
     public int Id { get; set; }
     public string Name { get; set; }
     public Allegiance Allegiance { get; set; }

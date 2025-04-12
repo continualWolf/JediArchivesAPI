@@ -79,6 +79,6 @@ public class DataContextWrite : DbContext {
         modelBuilder.Entity<Planet>()
             .Property(p => p.Name)
             .IsRequired();
-    
+
     }
 }

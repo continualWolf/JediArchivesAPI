@@ -1,6 +1,4 @@
 ﻿using JediArchives.Application.Planets.Models;
-using JediArchives.Application.Users.Models;
-using JediArchives.Application.Users.Queries;
 using JediArchives.DataStorage;
 using MediatR;
 

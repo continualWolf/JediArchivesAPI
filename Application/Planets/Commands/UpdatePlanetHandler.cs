@@ -21,7 +21,7 @@ public class UpdatePlanetHandler(DataContextWrite context) : IRequestHandler<Upd
             _contextWrite.SaveChanges();
 
             return true;
-        }catch (Exception ex) {
+        } catch (Exception) {
             return false;
         }
     }

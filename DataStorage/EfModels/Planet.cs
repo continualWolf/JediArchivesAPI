@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-
-namespace JediArchives.DataStorage.EfModels;
+﻿namespace JediArchives.DataStorage.EfModels;
 
 public class Planet {
     public int Id { get; set; }

@@ -1,5 +1,4 @@
 ﻿using JediArchives.Application.Planets.Models;
-using JediArchives.Application.Users.Models;
 using MediatR;
 
 namespace JediArchives.Application.Planets.Queries;
