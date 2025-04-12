@@ -10,7 +10,7 @@ namespace JediArchives.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class PlanetsController(IJwtService jwtService, IMediator mediator) : ControllerBase {
+public class PlanetsController(IJwtService jwtService, IMediator mediator) : ApiBaseController {
     private readonly IMediator _mediator = mediator;
     private readonly IJwtService _jwtService = jwtService;
 
@@ -24,19 +24,8 @@ public class PlanetsController(IJwtService jwtService, IMediator mediator) : Con
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Get(int Id) {
-        var planet = await _mediator.Send(new GetPlanetByIdQuery(Id));
-
-        if (planet is null) {
-            return NotFound(new ProblemDetails {
-                Title = "Planet Not Found",
-                Detail = $"The planet with ID {Id} does not exist.",
-                Status = 404,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        return Ok(planet);
+    public async Task<IActionResult> Get(int id) {
+        return await Execute(() => _mediator.Send(new GetPlanetByIdQuery(id)));
     }
 
     /// <summary>
@@ -49,9 +38,10 @@ public class PlanetsController(IJwtService jwtService, IMediator mediator) : Con
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Create(CreatePlanetCommand command) {
-        var result = await _mediator.Send(command);
-
-        return CreatedAtAction(nameof(Get), new { id = result.Id }, result);
+        return await Execute(async () => {
+            var result = await _mediator.Send(command);
+            return CreatedAtAction(nameof(Get), new { id = result.Id }, result);
+        });
     }
 
     /// <summary>
@@ -64,19 +54,8 @@ public class PlanetsController(IJwtService jwtService, IMediator mediator) : Con
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Delete(int Id) {
-        var result = await _mediator.Send(new DeletePlanetCommand(Id));
-
-        if (!result) {
-            return StatusCode(500, new ProblemDetails {
-                Title = "Internal Server Error",
-                Detail = "There has been an unknown internal error.",
-                Status = 500,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        return NoContent();
+    public async Task<IActionResult> Delete(int id) {
+        return await Execute(() => _mediator.Send(new DeletePlanetCommand(id)));
     }
 
     /// <summary>
@@ -90,20 +69,8 @@ public class PlanetsController(IJwtService jwtService, IMediator mediator) : Con
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Update(int Id, UpdatePlanetCommand command) {
-        command.Id = Id;
-
-        var result = await _mediator.Send(command);
-
-        if (!result) {
-            return StatusCode(500, new ProblemDetails {
-                Title = "Internal Server Error",
-                Detail = "There has been an unknown internal error.",
-                Status = 500,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        return NoContent();
+    public async Task<IActionResult> Update(int id, UpdatePlanetCommand command) {
+        command.Id = id;
+        return await Execute(() => _mediator.Send(command));
     }
 }

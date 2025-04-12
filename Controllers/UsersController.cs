@@ -12,7 +12,7 @@ namespace JediArchives.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UsersController(IJwtService jwtService, IMediator mediator) : ControllerBase {
+public class UsersController(IJwtService jwtService, IMediator mediator) : ApiBaseController {
     private readonly IMediator _mediator = mediator;
     private readonly IJwtService _jwtService = jwtService;
 
@@ -28,8 +28,7 @@ public class UsersController(IJwtService jwtService, IMediator mediator) : Contr
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login(LoginQuery query) {
-        var result = await _mediator.Send(query);
-        return Ok(result);
+        return await Execute(() => _mediator.Send(query));
     }
 
     /// <summary>
@@ -61,8 +60,10 @@ public class UsersController(IJwtService jwtService, IMediator mediator) : Contr
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Create(CreateUserCommand command) {
-        var result = await _mediator.Send(command);
-        return CreatedAtAction(nameof(Get), new { id = result.Id }, result);
+        return await Execute(async () => {
+            var result = await _mediator.Send(command);
+            return CreatedAtAction(nameof(Get), new { id = result.Id }, result);
+        });
     }
 
     /// <summary>
@@ -78,18 +79,7 @@ public class UsersController(IJwtService jwtService, IMediator mediator) : Contr
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Get(int id) {
-        var user = await _mediator.Send(new GetUserByIdQuery(id));
-
-        if (user is null) {
-            return NotFound(new ProblemDetails {
-                Title = "User Not Found",
-                Detail = $"The Jedi with ID {id} does not exist.",
-                Status = 404,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        return Ok(user);
+        return await Execute(() => _mediator.Send(new GetUserByIdQuery(id)));
     }
 
     /// <summary>
@@ -106,18 +96,7 @@ public class UsersController(IJwtService jwtService, IMediator mediator) : Contr
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteUser(int id) {
-        var result = await _mediator.Send(new DeleteUserCommand(id));
-
-        if (!result) {
-            return StatusCode(500, new ProblemDetails {
-                Title = "Internal Server Error",
-                Detail = "There has been an unknown internal error.",
-                Status = 500,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        return NoContent();
+        return await Execute(() => _mediator.Send(new DeleteUserCommand(id)));
     }
 
     /// <summary>
@@ -135,18 +114,6 @@ public class UsersController(IJwtService jwtService, IMediator mediator) : Contr
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateUser(int id, UpdateUserCommand command) {
         command.Id = id;
-
-        var success = await _mediator.Send(command);
-
-        if (!success) {
-            return StatusCode(500, new ProblemDetails {
-                Title = "Internal Server Error",
-                Detail = "There has been an unknown internal error.",
-                Status = 500,
-                Instance = HttpContext.Request.Path
-            });
-        }
-
-        return NoContent();
+        return await Execute(() => _mediator.Send(command));
     }
 }
