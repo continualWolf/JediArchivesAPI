@@ -1,4 +1,4 @@
-# Thr Jedi Archives API
+# The Jedi Archives API
 
 > _“If an item does not appear in our records, it does not exist.”_  
 > — Jocasta Nu, Chief Archivist of the Jedi Order
