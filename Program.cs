@@ -3,6 +3,8 @@ using JediArchives.Application.Users.Commands;
 using JediArchives.DataStorage;
 using JediArchives.Services.Implementations;
 using JediArchives.Services.Interfaces;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -89,6 +91,30 @@ app.UseIpRateLimiting();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseExceptionHandler("/error");
+
+app.Map("/error", (HttpContext context) => {
+    var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+
+    if (exception is FluentValidation.ValidationException validationException) {
+        var errors = validationException.Errors
+            .GroupBy(e => e.PropertyName)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(e => e.ErrorMessage).ToArray());
+
+        var problemDetails = new ValidationProblemDetails(errors) {
+            Title = "Validation failed",
+            Status = StatusCodes.Status400BadRequest,
+            Type = "https://tools.ietf.org/html/rfc7807"
+        };
+
+        return Results.Problem(problemDetails.Detail, statusCode: problemDetails.Status, title: problemDetails.Title, type: problemDetails.Type, extensions: problemDetails.Extensions);
+    }
+
+    return Results.Problem("An unexpected error occurred.");
+});
 
 app.Run();
 

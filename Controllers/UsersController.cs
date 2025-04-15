@@ -12,7 +12,7 @@ namespace JediArchives.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UsersController(IJwtService jwtService, IMediator mediator) : ApiBaseController {
+public class UsersController(IJwtService jwtService, IMediator mediator) : ControllerBase {
     private readonly IMediator _mediator = mediator;
     private readonly IJwtService _jwtService = jwtService;
 
@@ -28,7 +28,7 @@ public class UsersController(IJwtService jwtService, IMediator mediator) : ApiBa
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login(LoginQuery query) {
-        return await Execute(() => _mediator.Send(query));
+        return Ok(await _mediator.Send(query));
     }
 
     /// <summary>
@@ -60,10 +60,8 @@ public class UsersController(IJwtService jwtService, IMediator mediator) : ApiBa
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Create(CreateUserCommand command) {
-        return await Execute(async () => {
-            var result = await _mediator.Send(command);
-            return CreatedAtAction(nameof(Get), new { id = result.Id }, result);
-        });
+        var result = await _mediator.Send(command);
+        return CreatedAtAction(nameof(Get), new { id = result.Id }, result);
     }
 
     /// <summary>
@@ -79,7 +77,7 @@ public class UsersController(IJwtService jwtService, IMediator mediator) : ApiBa
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Get(int id) {
-        return await Execute(() => _mediator.Send(new GetUserByIdQuery(id)));
+        return Ok(await _mediator.Send(new GetUserByIdQuery(id)));
     }
 
     /// <summary>
@@ -96,7 +94,8 @@ public class UsersController(IJwtService jwtService, IMediator mediator) : ApiBa
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteUser(int id) {
-        return await Execute(() => _mediator.Send(new DeleteUserCommand(id)));
+        await _mediator.Send(new DeleteUserCommand(id));
+        return NoContent();
     }
 
     /// <summary>
@@ -114,6 +113,7 @@ public class UsersController(IJwtService jwtService, IMediator mediator) : ApiBa
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateUser(int id, UpdateUserCommand command) {
         command.Id = id;
-        return await Execute(() => _mediator.Send(command));
+        await _mediator.Send(command);
+        return NoContent();
     }
 }
