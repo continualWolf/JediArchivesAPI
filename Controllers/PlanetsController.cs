@@ -25,8 +25,6 @@ public class PlanetsController(IJwtService jwtService, IMediator mediator) : Con
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Get(int id) {
-        throw new Exception("Test exception");
-
         return Ok(await _mediator.Send(new GetPlanetByIdQuery(id)));
     }
 

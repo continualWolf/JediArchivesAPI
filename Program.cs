@@ -1,8 +1,12 @@
 using AspNetCoreRateLimit;
+using FluentValidation;
+using JediArchives.Application.Planets.Validators;
 using JediArchives.Application.Users.Commands;
 using JediArchives.DataStorage;
+using JediArchives.Helper;
 using JediArchives.Services.Implementations;
 using JediArchives.Services.Interfaces;
+using MediatR;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +23,10 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(CreateUserCommand).Assembly));
+
+// Add validators to pipeline
+builder.Services.AddValidatorsFromAssemblyContaining<CreatePlanetCommandValidator>();
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
 builder.Services.AddControllers();
 
@@ -97,6 +105,7 @@ app.UseExceptionHandler("/error");
 app.Map("/error", (HttpContext context) => {
     var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
 
+    // If its a validation exception include the attributes that have failed validation
     if (exception is FluentValidation.ValidationException validationException) {
         var errors = validationException.Errors
             .GroupBy(e => e.PropertyName)
@@ -107,13 +116,21 @@ app.Map("/error", (HttpContext context) => {
         var problemDetails = new ValidationProblemDetails(errors) {
             Title = "Validation failed",
             Status = StatusCodes.Status400BadRequest,
-            Type = "https://tools.ietf.org/html/rfc7807"
+            Type = "https://tools.ietf.org/html/rfc7807",
+            Detail = "One or more fields failed validation.",
+            Instance = context.Request.Path
         };
 
-        return Results.Problem(problemDetails.Detail, statusCode: problemDetails.Status, title: problemDetails.Title, type: problemDetails.Type, extensions: problemDetails.Extensions);
+        return Results.ValidationProblem(problemDetails.Errors, statusCode: problemDetails.Status, title: problemDetails.Title, type: problemDetails.Type, detail: problemDetails.Detail, instance: problemDetails.Instance);
     }
 
-    return Results.Problem("An unexpected error occurred.");
+    // For most exceptions that are thrown just return a 500 as a general error
+    return Results.Problem(
+        statusCode: 500,
+        title: "An unexpected error occurred.",
+        detail: exception?.Message,
+        instance: context.Request.Path
+    );
 });
 
 app.Run();
