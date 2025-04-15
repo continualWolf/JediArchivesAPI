@@ -27,6 +27,8 @@ Advantages:
 Disadvantages:
 - Can be overly complicated and slow to implement
 
+Reasoning:
+- For smaller minimal API's using MediatR and CQRS may be considered overkill, however for my Jedi Archives API i am imagining that this API's endpoints will grow exponentially as the Jedi Archives are said to contain all the knowledge in the galaxy.
 ---
 
 ## 🔐 Security 
